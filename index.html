@@ -1,339 +1,551 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NebulaCoin Portal</title>
-<style>
-:root {
-  --bg: #0a0f1f;
-  --fg: #e0e6ff;
-  --card: #131a33;
-  --accent: #4ec9f0;
-  --accent2: #ff4081;
-  --green: #2ecc71;
-  --red: #e74c3c;
-}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NebulaCoin — Interstellar Exchange</title>
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-  padding: 20px;
-}
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo {
-  background: var(--accent);
-  color: var(--bg);
-  font-weight: bold;
-  font-size: 20px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-h1 {
-  margin: 0;
-}
-.tagline {
-  font-size: 0.9rem;
-  color: #a0a6c0;
-}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-.grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
-}
+  <style>
+    :root{
+      --bg1:#03040a;
+      --bg2:#061025;
+      --neon-cyan: #00ffea;
+      --neon-mag: #ff66ff;
+      --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(0,255,234,0.08);
+      --card-glow: 0 8px 40px rgba(0,255,234,0.08), inset 0 1px 0 rgba(255,255,255,0.02);
+    }
 
-.card {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
+    /* Reset & body */
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: 'Rajdhani', sans-serif;
+      color:#eaf8ff;
+      background:
+        radial-gradient(1200px 800px at 10% 10%, rgba(0,48,83,0.25), transparent 8%),
+        radial-gradient(800px 600px at 90% 80%, rgba(90,0,80,0.18), transparent 10%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      overflow-y:auto;
+      -webkit-font-smoothing:antialiased;
+      position:relative;
+      padding:32px;
+    }
 
-.big-card {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-.stats {
-  display: flex;
-  gap: 15px;
-}
-.stat {
-  flex: 1;
-  text-align: center;
-}
-.stat .num {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-.stat .label {
-  font-size: 0.85rem;
-  color: #aaa;
-}
+    /* moving starfield (CSS) */
+    .stars, .stars::after {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(#ffffff 0.8px, transparent 0.9px),
+        radial-gradient(#ffffff 0.6px, transparent 0.7px);
+      background-size: 150px 150px, 300px 300px;
+      opacity:0.12;
+      animation: drift 90s linear infinite;
+    }
+    .stars::after {
+      animation-duration: 130s;
+      opacity:0.06;
+      transform: scale(1.8);
+      filter: blur(0.6px);
+    }
+    @keyframes drift { from {transform:translate(0,0)} to {transform:translate(-1200px,-800px)} }
 
-.wallet {
-  text-align: center;
-}
-.wallet .balance {
-  font-size: 1.5rem;
-  margin: 10px 0;
-}
-.wallet .controls {
-  display: flex;
-  gap: 8px;
-}
-.btn {
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.btn:hover {
-  background: var(--accent2);
-}
+    /* container */
+    .wrap{
+      position:relative;
+      z-index:2;
+      max-width:1200px;
+      margin:0 auto;
+    }
 
-.side {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 8px;
-  border-bottom: 1px solid #222;
-  text-align: left;
-}
-th {
-  color: var(--accent);
-}
+    header{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:22px;
+    }
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
+    .logo {
+      width:64px;
+      height:64px;
+      border-radius:12px;
+      background: linear-gradient(135deg,var(--neon-cyan),var(--neon-mag));
+      box-shadow: 0 6px 22px rgba(0,255,234,0.12), 0 0 50px rgba(255,102,255,0.06);
+      display:grid;
+      place-items:center;
+      font-family: 'Orbitron', sans-serif;
+      color:#00121a;
+      font-weight:700;
+      letter-spacing:1px;
+    }
+    h1{
+      margin:0;
+      font-family:'Orbitron', sans-serif;
+      font-size:1.6rem;
+      letter-spacing:1px;
+      color:linear-gradient;
+      text-shadow:0 0 14px rgba(0,255,234,0.16);
+    }
+    .tagline{
+      color:#9fdfe9;
+      font-size:0.95rem;
+      opacity:0.9;
+    }
 
-/* Tablet and below */
-@media (max-width: 980px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  .logo {
-    width: 54px;
-    height: 54px;
-    font-size: 18px;
-  }
-}
+    /* layout grid */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:18px;
+      align-items:start;
+    }
+    /* glass card */
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      padding:18px;
+      border:1px solid var(--glass-border);
+      backdrop-filter: blur(6px) saturate(120%);
+      box-shadow: var(--card-glow);
+      position:relative;
+      overflow:hidden;
+    }
 
-/* Mobile: up to ~768px */
-@media (max-width: 768px) {
-  body {
-    padding: 16px;
-  }
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    text-align: left;
-  }
-  .brand {
-    flex-direction: row;
-    align-items: center;
-  }
-  h1 {
-    font-size: 1.3rem;
-  }
-  .tagline {
-    font-size: 0.85rem;
-  }
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .big-card, .side {
-    gap: 10px;
-  }
-  .chart-wrap {
-    padding: 6px;
-  }
-  .chart-wrap canvas {
-    width: 100% !important;
-    height: auto !important;
-  }
-  .stats {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .stat {
-    min-width: auto;
-    width: 100%;
-  }
-  .wallet .controls {
-    flex-direction: column;
-    gap: 6px;
-  }
-  .wallet .btn {
-    flex: 1;
-    text-align: center;
-    font-size: 0.9rem;
-    padding: 10px;
-  }
-  /* Scrollable table */
-  .card table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  table {
-    font-size: 0.8rem;
-  }
-  th, td {
-    padding: 6px;
-  }
-  footer {
-    font-size: 0.8rem;
-    margin-bottom: 40px;
-  }
-}
+    /* neon accent line */
+    .neon-line{
+      position:absolute;
+      height:2px;
+      left:16px; right:16px;
+      top:0;
+      background: linear-gradient(90deg,var(--neon-cyan), rgba(0,255,234,0.15), var(--neon-mag));
+      opacity:0.9;
+      filter: blur(6px);
+      transform: translateY(-6px);
+    }
 
-/* Very small screens: up to ~480px */
-@media (max-width: 480px) {
-  .logo {
-    width: 44px;
-    height: 44px;
-    font-size: 15px;
-  }
-  h1 {
-    font-size: 1.15rem;
-  }
-  .tagline {
-    font-size: 0.78rem;
-  }
-  .wallet .balance {
-    font-size: 1.2rem;
-  }
-  .btn {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-  }
-  .stats .num {
-    font-size: 1.2rem;
-  }
-}
+    /* left column content */
+    .big-card{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .stats{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .stat{
+      flex:1;
+      min-width:180px;
+      padding:12px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.007));
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .stat h3{ margin:6px 0 0 0; font-family:'Exo',sans-serif; color:#dff; font-size:0.95rem;}
+    .stat .num{ font-family:'Orbitron',sans-serif; font-size:1.4rem; color:var(--neon-cyan); text-shadow:0 0 12px rgba(0,255,234,0.12); }
 
-</style>
+    /* chart area */
+    .chart-wrap{
+      padding:10px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    /* right column */
+    .side{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .wallet{
+      text-align:left;
+    }
+    .wallet .balance{
+      font-family:'Orbitron',sans-serif;
+      font-size:1.6rem;
+      color:var(--neon-mag);
+      text-shadow:0 0 16px rgba(255,102,255,0.08);
+    }
+    .wallet .controls{ margin-top:10px; display:flex; gap:8px; }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      cursor:pointer;
+      font-weight:700;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:#00121a;
+      box-shadow:0 6px 18px rgba(0,0,0,0.35), 0 0 12px rgba(0,255,234,0.06) inset;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,var(--neon-cyan), var(--neon-mag));
+      color:#001015;
+      border:none;
+      box-shadow: 0 12px 50px rgba(0,255,234,0.12);
+    }
+
+    /* transactions table */
+    table{ width:100%; border-collapse:collapse; font-size:0.92rem; }
+    th,td{ padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03); }
+    th{ color:#bfeff0; font-weight:700; font-size:0.85rem; }
+
+    /* news */
+    .news ul{ margin:0; padding-left:18px; line-height:1.6; list-style:none; }
+    .news li{ padding:8px 0; border-bottom:1px dashed rgba(255,255,255,0.02); }
+
+    /* galactic overview paragraph styling */
+    .overview p{ margin:0; line-height:1.6; color:#dfeff4; font-size:0.98rem; }
+
+    /* footer */
+    footer{ margin:28px 0 80px; color:#9ab; text-align:center; font-size:0.9rem; opacity:0.9; }
+
+    /* responsive */
+    @media (max-width:980px){
+      .grid{ grid-template-columns: 1fr; }
+      .logo{ width:54px; height:54px; font-size:18px; }
+    }
+
+    /* Additional responsive tweaks for mobile */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        text-align: left;
+      }
+      .brand {
+        flex-direction: row;
+        align-items: center;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+      .tagline {
+        font-size: 0.85rem;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .big-card, .side {
+        gap: 10px;
+      }
+      .chart-wrap {
+        padding: 6px;
+      }
+      .chart-wrap canvas {
+        height: 180px !important;
+      }
+      .stats {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stat {
+        min-width: auto;
+        width: 100%;
+      }
+      .wallet .controls {
+        flex-direction: column;
+        gap: 6px;
+      }
+      .wallet .btn {
+        flex: 1;
+        text-align: center;
+      }
+      table {
+        font-size: 0.8rem;
+      }
+      th, td {
+        padding: 6px;
+      }
+      footer {
+        font-size: 0.8rem;
+        margin-bottom: 40px;
+      }
+    }
+    @media (max-width: 480px) {
+      .logo {
+        width: 48px;
+        height: 48px;
+        font-size: 16px;
+      }
+      h1 {
+        font-size: 1.1rem;
+      }
+      .tagline {
+        font-size: 0.78rem;
+      }
+      .wallet .balance {
+        font-size: 1.2rem;
+      }
+      .btn {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="logo">NC</div>
-    <div>
-      <h1>NebulaCoin Portal</h1>
-      <div class="tagline">Track your interstellar wealth</div>
-    </div>
+
+  <div class="stars" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">NC</div>
+        <div>
+          <h1>NebulaCoin</h1>
+          <div class="tagline">Interstellar Exchange • Quantum-Secured • Galactic Liquidity</div>
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <div style="font-size:0.9rem; color:#cfe;">Connected nodes: <strong style="color:var(--neon-cyan)">12</strong></div>
+        <div style="font-size:0.8rem; color:#9ab; margin-top:6px;">Network latency: <strong>2.3s</strong></div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- LEFT: main dashboard -->
+      <section class="big-card">
+        <div class="card">
+          <div class="neon-line"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="color:#aef7ec;font-size:0.9rem;">LIVE</div>
+              <div style="font-size:1.2rem;font-weight:700;color:#cfe;">NebulaCoin Value</div>
+              <div style="font-family:'Orbitron',sans-serif;font-size:2rem;color:var(--neon-cyan);margin-top:6px;" id="livePrice">ɴ₡ 1.245</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.9rem;color:#bfe;">Market Cap</div>
+              <div style="font-weight:700;font-size:1.1rem;color:#dff;">$245,000,000</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;" class="chart-wrap">
+            <canvas id="valueChart" height="140"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="display:flex;gap:12px;flex-wrap:wrap;">
+          <div class="stat">
+            <div style="font-size:0.8rem;color:#9fe;">24h Volume</div>
+            <div class="num">ɴ₡ 8,450,000</div>
+          </div>
+          <div class="stat">
+            <div style="font-size:0.8rem;color:#9fe;">Circulating Supply</div>
+            <div class="num">198,200,000 NC</div>
+          </div>
+          <div class="stat">
+            <div style="font-size:0.8rem;color:#9fe;">Transactions (24h)</div>
+            <div class="num">42,193</div>
+          </div>
+        </div>
+
+        <div class="card overview">
+          <h3 style="margin:0 0 10px 0; font-family:'Orbitron',sans-serif;">📜 Galactic Overview</h3>
+          <p>
+            In the year 2147, humanity has spread far beyond Earth. The Martian megacities trade iron and rare isotopes,
+            Europa’s under-ice colonies export life-sustaining water, and Ceres has become the solar system’s largest hub
+            for asteroid-mined platinum. These worlds are bound together not just by warp lanes, but by the Interstellar Exchange —
+            a unified economic network where <strong>NebulaCoin</strong> serves as the primary currency. Free from terrestrial banking constraints,
+            NebulaCoin operates on a quantum-secure blockchain spanning Earth, Mars, Europa, and Ceres, enabling instant, trustless
+            value transfers across light-minutes of distance. Trade flows like starlight itself — fast, borderless, and limitless.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0; font-family:'Orbitron',sans-serif;'>Recent Transactions</h3>
+          <table aria-label="recent transactions">
+            <thead>
+              <tr><th>Date</th><th>Type</th><th>Amount (NC)</th><th>Status</th></tr>
+            </thead>
+            <tbody id="txBody">
+              <tr><td>2147-08-09</td><td>Send • Mars → Ceres</td><td>50</td><td style="color:#7ff; font-weight:700;">Confirmed</td></tr>
+              <tr><td>2147-08-08</td><td>Receive • Europa → Mars</td><td>120</td><td style="color:#7ff; font-weight:700;">Confirmed</td></tr>
+              <tr><td>2147-08-07</td><td>Send • Earth → Europa</td><td>200</td><td style="color:#f3a; font-weight:700;">Pending</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: side column -->
+      <aside class="side">
+        <div class="card wallet">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.85rem;color:#bfe;">Your Nebula Wallet</div>
+              <div class="balance" id="walletBalance">1,250 NC</div>
+              <div style="font-size:0.75rem;color:#9ab;margin-top:6px;">Wallet ID: <code style="background:rgba(255,255,255,0.02);padding:3px 6px;border-radius:6px;color:#dff;">NC-3f7a-7c9</code></div>
+            </div>
+            <div>
+              <button class="btn primary" onclick="mockReceive()">Receive</button>
+              <button class="btn" onclick="mockSend()">Send</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;font-size:0.85rem;color:#9ab;">
+            <div>Network Status: <strong style="color:var(--neon-cyan)">Online</strong></div>
+            <div style="margin-top:6px;">Nodes connected: <strong>12</strong></div>
+          </div>
+        </div>
+
+        <div class="card news">
+          <h3 style="margin:0 0 10px 0;font-family:'Orbitron',sans-serif;'>🛰️ Galactic News</h3>
+          <ul>
+            <li>🛒 NebulaCoin now accepted at the Mars Colony Central Market.</li>
+            <li>⛏️ Ceres asteroid cluster 4-B supplies new platinum batch backing NC.</li>
+            <li>🌊 Europa desalination plant increases water exports by 18%.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0;font-family:'Orbitron',sans-serif;'>Quick Tools</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn" onclick="toggleChartPause()"><span id="chartBtn">Pause Market</span></button>
+            <button class="btn" onclick="simulateEvent()">Simulate Market Event</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      © NebulaCoin Interstellar Exchange — Quantum-secured ledger • Prototype demo only
+    </footer>
   </div>
-</header>
 
-<div class="grid">
-  <div class="big-card">
-    <div class="card chart-wrap">
-      <canvas id="priceChart"></canvas>
-    </div>
-    <div class="stats">
-      <div class="stat">
-        <div class="num" id="price">$0.00</div>
-        <div class="label">Current Price</div>
-      </div>
-      <div class="stat">
-        <div class="num" id="change">0%</div>
-        <div class="label">24h Change</div>
-      </div>
-      <div class="stat">
-        <div class="num" id="volume">$0</div>
-        <div class="label">24h Volume</div>
-      </div>
-    </div>
-  </div>
+  <!-- SCRIPT: Chart + simulated updates + simple interactions -->
+  <script>
+    // Chart setup
+    const ctx = document.getElementById('valueChart').getContext('2d');
+    const initial = [1.12, 1.15, 1.13, 1.18, 1.21, 1.23, 1.245];
+    const labels = ['T-6','T-5','T-4','T-3','T-2','T-1','Now'];
+    const chart = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels: labels,
+        datasets:[{
+          label:'NebulaCoin (ɴ₡)',
+          data: initial.slice(),
+          borderColor: 'rgba(0,255,234,0.95)',
+          backgroundColor: 'linear-gradient(180deg, rgba(0,255,234,0.06), rgba(255,102,255,0.02))',
+          fill: true,
+          tension: 0.28,
+          pointRadius: 3,
+          pointBackgroundColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false }
+        },
+        scales:{
+          x:{ ticks:{ color:'#aee' }, grid:{ color:'rgba(255,255,255,0.02)' } },
+          y:{ ticks:{ color:'#aee' }, grid:{ color:'rgba(255,255,255,0.02)' } }
+        }
+      }
+    });
 
-  <div class="side">
-    <div class="card wallet">
-      <h3>Wallet</h3>
-      <div class="balance" id="balance">0.0000 NC</div>
-      <div class="controls">
-        <button class="btn">Send</button>
-        <button class="btn">Receive</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Recent Transactions</h3>
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Type</th><th>Amount</th></tr>
-        </thead>
-        <tbody id="txTable">
-          <tr><td>2025-08-09</td><td>Receive</td><td>+5 NC</td></tr>
-          <tr><td>2025-08-08</td><td>Send</td><td>-2 NC</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<footer style="text-align:center; margin-top:20px;">
-  NebulaCoin Portal © 2025
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const ctx = document.getElementById('priceChart').getContext('2d');
-const priceChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      label: 'Price (USD)',
-      data: [0.12, 0.15, 0.14, 0.18, 0.17, 0.21, 0.19],
-      borderColor: '#4ec9f0',
-      tension: 0.3
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      x: { grid: { color: '#222' } },
-      y: { grid: { color: '#222' } }
+    // live simulation toggles
+    let live = true;
+    function randomDelta(){
+      return (Math.random()-0.5)*0.02; // small fluctuation
     }
-  }
-});
 
-// Mock data update
-document.getElementById('price').textContent = '$0.19';
-document.getElementById('change').textContent = '+5.56%';
-document.getElementById('volume').textContent = '$1.2M';
-document.getElementById('balance').textContent = '12.3456 NC';
-</script>
+    function pushPrice(newP){
+      const d = chart.data.datasets[0].data;
+      d.shift();
+      d.push(Number(newP.toFixed(3)));
+      chart.update('none');
+      document.getElementById('livePrice').textContent = 'ɴ₡ ' + newP.toFixed(3);
+    }
+
+    // update loop
+    let base = 1.245;
+    let intervalId = setInterval(()=> {
+      if(!live) return;
+      base += randomDelta();
+      pushPrice(base);
+    }, 2600);
+
+    function toggleChartPause(){
+      live = !live;
+      document.getElementById('chartBtn').innerText = live? 'Pause Market' : 'Resume Market';
+    }
+
+    // quick tools: simulate event
+    function simulateEvent(){
+      // big market swing + news update + transaction added
+      base += 0.08 * (Math.random()>0.5?1:-1);
+      pushPrice(base);
+      // add a fake tx
+      const tbody = document.getElementById('txBody');
+      const tr = document.createElement('tr');
+      const date = new Date().toISOString().slice(0,10);
+      tr.innerHTML = `<td>${date}</td><td>Sim • Interstellar</td><td>${Math.round(Math.random()*500)}</td><td style="color:#7ff;font-weight:700;">Confirmed</td>`;
+      tbody.prepend(tr);
+      // flash wallet change
+      const wb = document.getElementById('walletBalance');
+      const delta = Math.round((Math.random()*80)-40);
+      const cur = parseInt(wb.textContent);
+      wb.textContent = cur + delta;
+      wb.style.transition='0.5s';
+      wb.style.transform='scale(1.07)';
+      setTimeout(()=> wb.style.transform='scale(1)',400);
+    }
+
+    // mock send/receive
+    function mockSend(){
+      const amt = Math.round(Math.random()*200)+10;
+      const wb = document.getElementById('walletBalance');
+      let cur = parseInt(wb.textContent);
+      if(cur-amt < 0) { alert('Insufficient NC'); return; }
+      cur -= amt; wb.textContent = cur;
+      const tbody = document.getElementById('txBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${new Date().toISOString().slice(0,10)}</td><td>Send • Earth → Mars</td><td>${amt}</td><td style="color:#f3a;font-weight:700;">Pending</td>`;
+      tbody.prepend(tr);
+    }
+    function mockReceive(){
+      const amt = Math.round(Math.random()*300)+25;
+      const wb = document.getElementById('walletBalance');
+      let cur = parseInt(wb.textContent);
+      cur += amt; wb.textContent = cur;
+      const tbody = document.getElementById('txBody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${new Date().toISOString().slice(0,10)}</td><td>Receive • Ceres → Wallet</td><td>${amt}</td><td style="color:#7ff;font-weight:700;">Confirmed</td>`;
+      tbody.prepend(tr);
+    }
+
+    // small accessibility: focus outline for buttons
+    document.querySelectorAll('.btn').forEach(b=> b.addEventListener('keydown', e=>{
+      if(e.key === 'Enter') b.click();
+    }));
+  </script>
 </body>
 </html>
